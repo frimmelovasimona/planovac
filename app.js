@@ -9,8 +9,8 @@
   //
   // Až budou v rezervačním kalendáři obě služby, přepiš sem jejich adresy.
   // ------------------------------------------------------------------
-  var ODKAZ_BEZNY = 'https://www.frimmelovasimona.com/challenge-page/komunita';
-  var ODKAZ_CLEN  = 'https://www.frimmelovasimona.com/challenge-page/komunita';
+  var ODKAZ_BEZNY = 'https://www.frimmelovasimona.com/booking-calendar/osobn%C3%AD-konzultace-se-simonou';
+  var ODKAZ_CLEN  = 'https://www.frimmelovasimona.com/booking-calendar/%C4%8Dlensk%C3%A1-konzultace-30-minut';
 
   // ------------------------------------------------------------------
   // ČLENSKÝ REŽIM
