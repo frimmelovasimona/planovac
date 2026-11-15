@@ -47,6 +47,14 @@
     tyden: {
       label: 'Musí to být tenhle týden?',
       opts: [['ano', 'Ano'], ['ne', 'Ne']]
+    },
+    emoce: {
+      label: 'Jak moc se ti do toho chce?',
+      opts: [
+        ['nechce', 'Nechce se mi', '😖'],
+        ['ok',     'Nevadí mi to', '😐'],
+        ['chce',   'Těším se',     '😃']
+      ]
     }
   };
 
@@ -59,7 +67,11 @@
   function el(id) { return document.getElementById(id); }
 
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify({ t: tasks, s: seq })); } catch (e) {}
+    try {
+      localStorage.setItem(KEY, JSON.stringify({
+        t: tasks, s: seq, c: (el('cil') ? el('cil').value : '')
+      }));
+    } catch (e) {}
   }
 
   function load() {
@@ -68,6 +80,7 @@
       if (!raw) return;
       var d = JSON.parse(raw);
       if (d && Array.isArray(d.t)) { tasks = d.t; seq = d.s || tasks.length + 1; }
+      if (d && typeof d.c === 'string' && el('cil')) { el('cil').value = d.c; }
     } catch (e) {}
   }
 
@@ -75,7 +88,7 @@
     name = (name || '').trim();
     if (!name) return;
     if (name.length > 120) name = name.slice(0, 120);
-    tasks.push({ id: seq++, name: name, koupe: null, cas: 'stredni', tyden: 'ne' });
+    tasks.push({ id: seq++, name: name, koupe: null, cas: 'stredni', tyden: 'ne', emoce: 'ok' });
     save();
     render();
   }
@@ -94,10 +107,17 @@
     render();
   }
 
+  // Pořadí se schválně počítá JEN z peněz a času. To, jestli se ti do něčeho
+  // chce, pořadím nehybe — jinak by se nahoru dostávalo to příjemné.
+  // Emoce se promitne do rady u úkolu a do závěru.
   function score(t) {
     return SCORE.koupe[t.koupe == null ? 'ne' : t.koupe]
       + SCORE.cas[t.cas]
       + SCORE.tyden[t.tyden];
+  }
+
+  function emoce(t) {
+    return t.emoce || 'ok';
   }
 
   function label(t) {
@@ -122,6 +142,18 @@
       if (t.tyden === 'ano') bits.push('Když to opravdu musí být, udělej to rychle a bez ladění.');
       else bits.push('Tenhle týden to klidně vynech. Nikdo si toho nevšimne.');
     }
+
+    var e = emoce(t);
+    if (l === 'V' && e === 'nechce') {
+      bits.push('A nechce se ti do toho. Přesně tohle se odkládá nejčastěji — udělej to jako první věc ráno, dřív než si najdeš něco jiného.');
+    } else if (l === 'V' && e === 'chce') {
+      bits.push('A ještě se na to těšíš. Tak s tím začni.');
+    } else if (l === 'P' && e === 'nechce') {
+      bits.push('A nechce se ti do toho. U téhle kategorie je to signal, že by to za tebe mohl udělat někdo jiný.');
+    } else if (l === 'X' && e === 'chce') {
+      bits.push('A ještě se na to těšíš. To je ta nejzrádnější kombinace — příjemné a nikam nevedoucí.');
+    }
+
     return bits.join(' ');
   }
 
@@ -170,7 +202,15 @@
           btn.setAttribute('data-id', t.id);
           btn.setAttribute('data-k', k);
           btn.setAttribute('data-v', o[0]);
-          btn.textContent = o[1];
+          if (o[2]) {
+            var em = document.createElement('span');
+            em.className = 'em';
+            em.textContent = o[2];
+            btn.appendChild(em);
+            btn.appendChild(document.createTextNode(o[1]));
+          } else {
+            btn.textContent = o[1];
+          }
           opts.appendChild(btn);
         });
         q.appendChild(lab);
@@ -276,7 +316,25 @@
     box.style.display = 'block';
   }
 
+  function cil() {
+    var v = (el('cil') && el('cil').value || '').trim();
+    return v.length > 120 ? v.slice(0, 120) : v;
+  }
+
   function run() {
+    var c = cil();
+    var box = el('cilOut');
+    if (c) {
+      box.textContent = 'Tenhle týden chceš, aby se povedlo: ';
+      var b = document.createElement('b');
+      b.textContent = c;
+      box.appendChild(b);
+      box.style.display = 'block';
+    } else {
+      box.textContent = '';
+      box.style.display = 'none';
+    }
+
     var sorted = tasks.slice().sort(function (a, b) { return score(b) - score(a); });
     var counts = { V: 0, P: 0, X: 0 };
     sorted.forEach(function (t) { counts[label(t)]++; });
@@ -332,6 +390,23 @@
     } else {
       v = 'Začni prvním v pořadí a nepouštěj se do ničeho dalšího, dokud ho nemáš hotový.';
     }
+    var vNechce = sorted.filter(function (t) {
+      return label(t) === 'V' && emoce(t) === 'nechce';
+    }).length;
+    if (vNechce === 1) {
+      v += ' Jeden z vydělávajících úkolů se ti dělat nechce. To není náhoda — peníze bývají schované přesně za tím, co odkládáš.';
+    } else if (vNechce > 1) {
+      v += ' Hned u ' + vNechce + ' vydělávajících úkolů se ti do toho nechce. To není náhoda — peníze bývají schované přesně za tím, co odkládáš.';
+    }
+
+    // Cíl se neopakuje — je vidět nad výsledkem. Opře se o něj jen tam,
+    // kde to něco řekne: když týden k němu nevede.
+    if (c && !counts.V) {
+      v += ' Na „' + c + '“ se takhle nedostaneš.';
+    } else if (c && counts.X > counts.V) {
+      v += ' Na „' + c + '“ ti takhle nezbude čas.';
+    }
+
     el('verdict').textContent = v;
 
     nabidka(counts);
@@ -365,7 +440,7 @@
     fetch('api.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ukoly: payload }),
+      body: JSON.stringify({ ukoly: payload, cil: cil() }),
       signal: ctl ? ctl.signal : undefined
     }).then(function (r) {
       if (!r.ok) throw new Error('nedostupne');
@@ -410,6 +485,8 @@
   el('again').addEventListener('click', function () {
     tasks = [];
     seq = 1;
+    if (el('cil')) { el('cil').value = ''; }
+    el('cilOut').style.display = 'none';
     save();
     el('out').style.display = 'none';
     el('cta').style.display = 'none';

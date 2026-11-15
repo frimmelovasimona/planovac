@@ -27,16 +27,28 @@
 
   /* ---------------- hlavička s fotkou ---------------- */
   .hero{position:relative;overflow:hidden;margin-bottom:30px;background:var(--cream)}
+  /* Fotka sedí ve vlastním čtvercovém rámečku přilepeném vpravo.
+     Díky tomu se maska počítá z FOTKY, ne ze šířky okna — jinak by se
+     na širší obrazovce objevila svislá hrana tam, kde obrázek začíná. */
   .hero .photo{
-    position:absolute;inset:0;
-    background:url('simona.jpg') no-repeat right -2% top 18%;
-    background-size:auto 118%;
+    position:absolute;top:-3.2%;right:-4px;
+    height:118%;aspect-ratio:1 / 1;
+    background:url('simona.jpg') no-repeat center center;
+    background-size:cover;
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0%, rgba(0,0,0,.10) 20%, rgba(0,0,0,.62) 48%, #000 72%, #000 100%),
+      linear-gradient(to bottom, transparent 0%, transparent 5%, #000 20%, #000 60%, transparent 87%);
+    -webkit-mask-composite:source-in;
+    mask-image:
+      linear-gradient(to right, transparent 0%, rgba(0,0,0,.10) 20%, rgba(0,0,0,.62) 48%, #000 72%, #000 100%),
+      linear-gradient(to bottom, transparent 0%, transparent 5%, #000 20%, #000 60%, transparent 87%);
+    mask-composite:intersect;
   }
   .hero .veil{
     position:absolute;inset:0;
     background:
-      linear-gradient(96deg, var(--cream) 0%, var(--cream) 30%, rgba(251,247,241,.94) 44%, rgba(251,247,241,.52) 60%, rgba(251,247,241,.12) 78%, rgba(251,247,241,.04) 100%),
-      linear-gradient(to bottom, rgba(251,247,241,.06) 0%, rgba(251,247,241,.10) 60%, rgba(251,247,241,.90) 100%);
+      linear-gradient(96deg, var(--cream) 0%, rgba(251,247,241,.97) 28%, rgba(251,247,241,.74) 46%, rgba(251,247,241,.26) 64%, rgba(251,247,241,0) 86%),
+      linear-gradient(to bottom, rgba(251,247,241,0) 0%, rgba(251,247,241,.05) 55%, rgba(251,247,241,.72) 100%);
   }
   .hero .inner{
     position:relative;max-width:720px;margin:0 auto;
@@ -76,6 +88,17 @@
   .btn.gold:hover{background:var(--ink)}
   .btn[disabled]{opacity:.4;cursor:not-allowed}
   .hint{font-size:13.5px;color:var(--muted);margin-top:10px}
+  #cil{
+    width:100%;font-family:inherit;font-size:15.5px;
+    padding:12px 14px;border:1px solid var(--gold-xl);background:#fff;color:var(--ink);
+  }
+  #cil:focus{outline:none;border-color:var(--gold)}
+  #cilOut{
+    display:none;font-size:15px;line-height:1.5;color:var(--body);
+    background:var(--card);border-left:2px solid var(--gold-l);
+    padding:12px 16px;margin-bottom:18px;
+  }
+  #cilOut b{font-weight:500;color:var(--ink)}
 
   .task{border-top:1px solid var(--line);padding:16px 0}
   .task:first-of-type{border-top:none}
@@ -90,6 +113,7 @@
   .opt{font-size:13.5px;padding:7px 12px;border:1px solid var(--gold-xl);background:#fff;color:var(--body)}
   .opt:hover{border-color:var(--gold)}
   .opt.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .opt .em{font-size:17px;line-height:1;margin-right:7px;vertical-align:-2px}
   .empty{text-align:center;color:var(--muted);font-size:14.5px;padding:18px 0}
 
   /* ---------------- výsledky ---------------- */
@@ -197,7 +221,14 @@
 <div class="wrap">
 
   <div class="panel">
-    <div class="step">Krok 1 — vypiš úkoly</div>
+    <div class="step">Krok 1 — co se má tenhle týden povést</div>
+    <input type="text" id="cil" maxlength="120" autocomplete="off"
+           placeholder="Např. uzavřít dva obchody nebo vydělat 30 000">
+    <div class="hint">Napiš to konkrétně, nejlép číslem. Podle toho ti pak řeknu, jestli tě tvůj týden k tomu vůbec vede.</div>
+  </div>
+
+  <div class="panel">
+    <div class="step">Krok 2 — vypiš úkoly po jednom</div>
     <div class="addrow">
       <input type="text" id="inp" placeholder="Např. Oslovit pět lidí z loňských poptávek" autocomplete="off">
       <button class="btn" id="add">Přidat</button>
@@ -206,13 +237,14 @@
   </div>
 
   <div class="panel">
-    <div class="step">Krok 2 — u každého mi odpověz</div>
+    <div class="step">Krok 3 — u každého mi odpověz</div>
     <div id="list"><div class="empty">Zatím tu nic není. Přidej první úkol nahoře.</div></div>
   </div>
 
   <button class="btn wide" id="go" disabled>Seřadit podle toho, co vydělává</button>
 
   <div id="out">
+    <div id="cilOut"></div>
     <div class="verdict">
       <img src="simona.jpg" alt="Simona Frimmelová">
       <div>
