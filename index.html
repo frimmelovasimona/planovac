@@ -100,6 +100,23 @@
   }
   #cilOut b{font-weight:500;color:var(--ink)}
 
+  /* ---------------- zavřeno ---------------- */
+  #zavreno{display:none;background:var(--ink);color:#F3EADA;padding:34px 28px;margin-bottom:22px}
+  #zavreno .tag{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-l);margin-bottom:12px}
+  #zavreno h2{
+    font-family:'Playfair Display',Georgia,serif;font-weight:500;
+    font-size:27px;line-height:1.2;color:#fff;margin-bottom:14px;
+  }
+  #zavreno p{font-size:16px;line-height:1.62;color:#DCCFB8;margin-bottom:14px;max-width:34em}
+  #zavreno p b{font-weight:500;color:#fff}
+  #zavreno a{
+    display:inline-block;margin-top:10px;background:var(--gold-l);color:var(--ink);
+    font-family:inherit;font-size:14.5px;font-weight:500;letter-spacing:.04em;
+    padding:14px 26px;text-decoration:none;
+  }
+  #zavreno a:hover{background:#C9A86A}
+  #zavreno .pozn{font-size:12.5px;color:#9C8A6E;margin:16px 0 0}
+
   .task{border-top:1px solid var(--line);padding:16px 0}
   .task:first-of-type{border-top:none}
   .tname{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
@@ -220,14 +237,23 @@
 
 <div class="wrap">
 
-  <div class="panel">
+  <div id="zavreno">
+    <div class="tag">Zavřeno</div>
+    <h2>Plánovač je teď zavřený</h2>
+    <p>Otevírám ho vždycky na <b>první neděli a pondělí v měsíci</b>. Další okno je <b id="zavDatum">brzy</b>.</p>
+    <p>Členky a členové komunity ho mají otevřený pořád — a ještě svoji verzi, kde je konzultace se mnou za 1 700 Kč místo 5 000.</p>
+    <a id="zavOdkaz" href="https://www.frimmelovasimona.com/challenge-page/komunita">Chci do komunity</a>
+    <div class="pozn">199 Kč měsíčně, zrušit můžeš kdykoliv.</div>
+  </div>
+
+  <div class="panel otevreno">
     <div class="step">Krok 1 — co se má tenhle týden povést</div>
     <input type="text" id="cil" maxlength="120" autocomplete="off"
            placeholder="Např. uzavřít dva obchody nebo vydělat 30 000">
     <div class="hint">Napiš to konkrétně, nejlép číslem. Podle toho ti pak řeknu, jestli tě tvůj týden k tomu vůbec vede.</div>
   </div>
 
-  <div class="panel">
+  <div class="panel otevreno">
     <div class="step">Krok 2 — vypiš úkoly po jednom</div>
     <div class="addrow">
       <input type="text" id="inp" placeholder="Např. Oslovit pět lidí z loňských poptávek" autocomplete="off">
@@ -236,12 +262,12 @@
     <div class="hint">Bod po bodu, jednotlivě. Všechno, co tě teď čeká a je pro tebe v nejbližší době důležité — klidně i to, u čeho tušíš, že je to zbytečné.</div>
   </div>
 
-  <div class="panel">
+  <div class="panel otevreno">
     <div class="step">Krok 3 — u každého mi odpověz</div>
     <div id="list"><div class="empty">Zatím tu nic není. Přidej první úkol nahoře.</div></div>
   </div>
 
-  <button class="btn wide" id="go" disabled>Seřadit podle toho, co vydělává</button>
+  <button class="btn wide otevreno" id="go" disabled>Seřadit podle toho, co vydělává</button>
 
   <div id="out">
     <div id="cilOut"></div>

@@ -26,6 +26,77 @@
   // ------------------------------------------------------------------
   var JE_CLEN = /(^|[?&])clen(=|&|$)/.test(location.search);
 
+  // ------------------------------------------------------------------
+  // KDY JE VEŘEJNÝ PLÁNOVAČ OTEVŘENÝ
+  //
+  // Pravidelně: první neděle v měsíci a pondělí po ní.
+  // Navíc jednorázové okno níž — rozjezd.
+  //
+  // Členská verze (?clen) se NEZAVÍRÁ nikdy, to je smysl členství.
+  //
+  // Změnit rozjezd: přepiš ROZJEZD. Měsíc se píše od nuly,
+  // takže listopad = 10, prosinec = 11, leden = 0.
+  // Vypnout zavírání úplně: dát ZAVÍRAT = false.
+  // ------------------------------------------------------------------
+  var ZAVIRAT  = true;
+  var ROZJEZD  = { rok: 2026, mesic: 10, odeDne: 15, doDne: 16 };
+
+  function denOd(d) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function prvniNedele(rok, mesic) {
+    var prvni = new Date(rok, mesic, 1);
+    return new Date(rok, mesic, 1 + ((7 - prvni.getDay()) % 7));
+  }
+
+  // Začátek nejbližšího okna od zadaného dne (včetně).
+  function dalsiOkno(ode) {
+    var n = prvniNedele(ode.getFullYear(), ode.getMonth());
+    if (n.getTime() < ode.getTime()) {
+      n = prvniNedele(ode.getFullYear(), ode.getMonth() + 1);
+    }
+    return n;
+  }
+
+  function otevreno(ted) {
+    if (!ZAVIRAT || JE_CLEN) return true;
+
+    var dnes = denOd(ted || new Date());
+
+    var od = new Date(ROZJEZD.rok, ROZJEZD.mesic, ROZJEZD.odeDne);
+    var doo = new Date(ROZJEZD.rok, ROZJEZD.mesic, ROZJEZD.doDne);
+    if (dnes.getTime() >= od.getTime() && dnes.getTime() <= doo.getTime()) return true;
+
+    // první neděle v měsíci
+    if (dnes.getDay() === 0) {
+      if (prvniNedele(dnes.getFullYear(), dnes.getMonth()).getTime() === dnes.getTime()) return true;
+    }
+    // pondělí hned po ní (klidně i přes přelom měsíce)
+    if (dnes.getDay() === 1) {
+      var vcera = new Date(dnes.getFullYear(), dnes.getMonth(), dnes.getDate() - 1);
+      if (prvniNedele(vcera.getFullYear(), vcera.getMonth()).getTime() === vcera.getTime()) return true;
+    }
+
+    return false;
+  }
+
+  var MESICE = ['ledna', '\u00fanora', 'b\u0159ezna', 'dubna', 'kv\u011btna', '\u010dervna',
+                '\u010dervence', 'srpna', 'z\u00e1\u0159\u00ed', '\u0159\u00edjna', 'listopadu', 'prosince'];
+
+  function zavri() {
+    var i, bloky = document.querySelectorAll('.otevreno');
+    for (i = 0; i < bloky.length; i++) { bloky[i].style.display = 'none'; }
+
+    var dalsi = dalsiOkno(denOd(new Date()));
+    var popis = 'v ned\u011bli ' + dalsi.getDate() + '. ' + MESICE[dalsi.getMonth()];
+    var pole = el('zavDatum');
+    if (pole) { pole.textContent = popis; }
+
+    el('zavreno').style.display = 'block';
+  }
+
+
   var CENA = {
     bezny: { popis: 'Osobní konzultace, 90 minut', pozn: 'co za ni platí ostatní', kc: '5 000 Kč' },
     clen:  { popis: 'Tvoje cena v komunitě — 30 minut', pozn: 'nikde jinde to nenajdeš', kc: '1 700 Kč' }
@@ -494,6 +565,10 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  load();
-  render();
+  if (!otevreno()) {
+    zavri();
+  } else {
+    load();
+    render();
+  }
 })();
