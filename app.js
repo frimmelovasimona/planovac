@@ -188,6 +188,13 @@
       : 'Doplň u všech první otázku';
   }
 
+  // Uvnitř rámu (na Wixu) nesmí odkaz mířit do nové záložky — rám to umí
+  // zablokovat a tlačítko pak nedělá nic. Tam se naviguje celé okno.
+  // Když nástroj běží sám o sobě, otevře se nová záložka jako dřív.
+  var V_RAMU = (function () {
+    try { return window.top !== window.self; } catch (e) { return true; }
+  })();
+
   function radekCeny(c, tridy) {
     var r = document.createElement('div');
     r.className = 'radek' + (tridy ? ' ' + tridy : '');
@@ -231,6 +238,7 @@
 
     el('ctaTitle').textContent = t;
     el('ctaText').textContent = p;
+    el('ctaLink').target = V_RAMU ? '_top' : '_blank';
 
     var ceny = el('ctaCeny');
     ceny.textContent = '';
